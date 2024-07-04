@@ -596,6 +596,11 @@ namespace winrt::Microsoft::Terminal::Settings::Model::implementation
         return _GetActionByKeyChordInternal(keys).value_or(nullptr);
     }
 
+    Model::Command ActionMap::GetActionByID(const winrt::hstring& cmdID) const
+    {
+        return _GetActionByID(cmdID);
+    }
+
     // Method Description:
     // - Retrieves the assigned command ID with the given key chord.
     // - Can return nullopt to differentiate explicit unbinding vs lack of binding.
@@ -875,6 +880,22 @@ namespace winrt::Microsoft::Terminal::Settings::Model::implementation
         }
 
         return results;
+    }
+
+    void ActionMap::AddSendInputAction(winrt::hstring name, winrt::hstring input, const Control::KeyChord keys)
+    {
+        auto newAction = winrt::make<ActionAndArgs>();
+        newAction.Action(ShortcutAction::SendInput);
+        auto sendInputArgs = winrt::make<SendInputArgs>(input);
+        newAction.Args(sendInputArgs);
+        auto cmd{ make_self<Command>() };
+        if (!name.empty())
+        {
+            cmd->Name(name);
+        }
+        cmd->ActionAndArgs(newAction);
+        cmd->GenerateID();
+        AddAction(*cmd, keys);
     }
 
     IVector<Model::Command> ActionMap::FilterToSendInput(
